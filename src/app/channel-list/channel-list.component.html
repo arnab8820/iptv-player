@@ -1,0 +1,17 @@
+<div class="filter">
+    <select name="filter" #filter (change)="handleFilter($event)">
+        <option value="all" selected>All</option>
+        <option *ngFor="let item of filteredList" [value]="item">{{item}}</option>
+    </select>
+</div>
+<ul class="listHolder">
+    <li *ngFor="let item of filteredChannels" class="listItem" (click)="handleClick(item)">
+        <div class="logo">
+            <img [src]="item.tvg.logo" alt="">
+        </div>
+        <div class="data">
+            <div class="title">{{item.name}}</div>
+            <div class="program">No info Available</div>
+        </div>
+    </li>
+</ul>
