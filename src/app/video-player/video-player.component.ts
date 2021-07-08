@@ -1,6 +1,5 @@
 import { Component, Input, OnInit, SimpleChanges, ViewChild } from '@angular/core';
-import {MediaPlayerClass, MediaPlayer} from 'dashjs';
-import videojs from 'video.js';
+import Hls from 'hls.js';
 
 @Component({
   selector: 'app-video-player',
@@ -12,56 +11,65 @@ import videojs from 'video.js';
 export class VideoPlayerComponent implements OnInit {
   @Input() channel;
   @ViewChild('player') player: any;
-  videoPlayer: videojs.Player;
 
-  options: any = {
-    fluid: false,
-    aspectRatio: "16:9",
-    height: "100%",
-    autoplay: true,
-    sources: []
-  }
+  hls = new Hls();
+  nowPlayingMetadata: any;
+  nowPlayingAudioList: any[] = [];
+  nowPlayingAudio: any;
+  
   constructor() { }
 
   ngOnChanges(changes: SimpleChanges) {
     if(changes.channel.currentValue && changes.channel.currentValue.url){
-      this.options.sources[0] = {src: this.channel.url, type: 'application/x-mpegURL'};
-      this.renderVideoPlayer();
+      if(this.hls){
+        this.hls.destroy();
+        this.hls = new Hls();
+        this.hls.attachMedia(this.player.nativeElement);
+        this.hls.on(Hls.Events.MEDIA_ATTACHED, ()=>{
+          // console.log("video element attached");
+          this.hls.loadSource(changes.channel.currentValue.url);
+          this.hls.on(Hls.Events.MANIFEST_PARSED, (event, data)=>{
+            // console.log(data);  
+          });    
+        });
+      }
+      this.nowPlayingMetadata = changes.channel.currentValue;
+      
+        // this.player.nativeElement.stop()
+        // this.nowPlayingAudioList = data.audioTracks;
+        // this.player.nativeElement.play();
+      
     }
   }
 
   ngOnInit(): void {
-    // this.mediaPlayer = MediaPlayer().create();
-    // this.mediaPlayer.getDebug().setLogToBrowserConsole(true);
-    // console.log("init player class");
-    // this.mediaPlayer.initialize(this.player.nativeElement, this.videoUrl, true);
-    // if(this.channel && this.channel.url){
-    //   this.options.sources.push({src: this.channel.url, type: 'application/x-mpegURL'})
-    // }
+    //Media element attached callback
+    
+
+    //Manifest parsed callback
+    
+
+    // Error handling
+    this.hls.on(Hls.Events.ERROR, (event, data)=>{
+      console.log("Error: ", data);
+      switch (data.type) {
+        case Hls.ErrorTypes.NETWORK_ERROR:
+          this.hls.startLoad();
+          break;
+        case Hls.ErrorTypes.MEDIA_ERROR:
+          // Nothing to do. HLS streams recover automatically
+          break;
+        default:
+          // this.hls.destroy();
+          // this.hls = new Hls;
+          // this.hls.attachMedia(this.player.nativeElement);
+          // this.hls.loadSource(this.nowPlayingMetadata.url)
+          break;
+      }
+    })
   }
 
   ngAfterViewInit(): void {
-    if(this.channel && this.channel.url){
-      this.videoPlayer = videojs(this.player.nativeElement, this.options, function onPlayerReady(){
-        console.log('onPlayerReady', this);      
-      });
-    }
-    
+    this.hls.attachMedia(this.player.nativeElement);
   }
-
-  renderVideoPlayer(){
-    if(!this.videoPlayer){
-      this.videoPlayer = videojs(this.player.nativeElement, this.options, function onPlayerReady(){
-        console.log('onPlayerReady', this);      
-      });
-    } else {
-      this.videoPlayer.src(this.channel.url);
-    }
-    // const palyer = this.videoPlayer.player();
-    
-    // console.log(palyer);
-    // palyer.selectSource(this.options.sources)
-  }
-  
-
 }

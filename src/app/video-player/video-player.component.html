@@ -1,5 +1,14 @@
-<div class="player-wrapper">
-    <div class="player">
-        <video #player class="video-js" controls playsinline preload="none"></video>
+<div class="player">
+    <video #player class="video-js" controls autoplay></video>
+    <div class="custom-overlay">
+        <div class="overlay">
+            <div class="info">{{nowPlayingMetadata&&nowPlayingMetadata.name?nowPlayingMetadata.name:"No Channel"}}</div>
+            <div class="controls">
+                <!-- <select>
+                    <option value="">Default</option>
+                    <option *ngFor="let item of nowPlayingAudioList" [value]="item.id">{{item.name}}</option>
+                </select> -->
+            </div>
+        </div>
     </div>
 </div>
